@@ -64,7 +64,45 @@ Avant de soumettre une modification ou une Pull Request, exécutez la suite de t
 
 ---
 
-## 🚀 5. Cycle de Vie des Releases & Conventions Git
+## 🚀 5. Cycle de Vie GitFlow & Pull Requests
+
+Kubunity applique un modèle **GitFlow standard** :
+
+```text
+  main (Production / Releases stables) ──────●────────────● (Tags vX.Y.Z)
+                                             ▲            ▲ (PR Release)
+  develop (Branche d'intégration) ───●───────┴────●───────┘
+                                     ▲            ▲ (PR Feature)
+  feature/my-new-feature ────────────┴────────────┘
+```
+
+* **`main`** : Branche protégée représentant les versions stables prêtes pour la production. Les modifications y arrivent exclusivement par Pull Request (PR) depuis `develop` ou `release/*`.
+* **`develop`** : Branche principale de développement où sont intégrées les nouvelles fonctionnalités validées par CI.
+* **`feature/<nom-de-la-feature>`** : Branche de travail créée à partir de `develop`.
+
+### Développer une nouvelle fonctionnalité :
+```bash
+# 1. Se positionner sur develop à jour
+git checkout develop
+git pull origin develop
+
+# 2. Créer sa branche feature
+git checkout -b feature/ma-nouvelle-feature
+
+# 3. Développer, tester localement
+cargo test
+./scripts/kubunity-ctl.sh lint
+
+# 4. Commiter et pousser
+git commit -m "feat: description claire de la fonctionnalité"
+git push -u origin feature/ma-nouvelle-feature
+
+# 5. Ouvrir une Pull Request vers la branche develop
+```
+
+---
+
+## 🏷️ 6. Conventions de Commit & Workflow de Release
 
 * **Messages de Commit (Conventional Commits)** :
   * `feat: ...` : Nouvelle fonctionnalité ou template.
@@ -73,7 +111,6 @@ Avant de soumettre une modification ou une Pull Request, exécutez la suite de t
   * `ci: ...` : Modification des workflows GitHub Actions.
   * `chore: ...` : Maintenance ou mise à jour de dépendances.
 
-* **Workflow de Release** :
+* **Publication des Releases (OCI)** :
   * Les tags Git respectent le versionnage sémantique (`vX.Y.Z`).
-  * Chaque push sur `main` déclenche le workflow de validation CI.
-  * Chaque création de tag déclenche la publication automatique des artefacts OCI sur GitHub Container Registry (`ghcr.io`).
+  * Chaque création de tag sur `main` déclenche la publication automatique des artefacts OCI sur GitHub Container Registry (`oci://ghcr.io/jzacharie/charts/kubunity`).
