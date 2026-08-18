@@ -1,0 +1,11 @@
+# Helm dependencies (downloaded subcharts)
+charts/*/charts/
+charts/*/tmpcharts/
+*.tgz
+
+# OS & IDE metadata
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~

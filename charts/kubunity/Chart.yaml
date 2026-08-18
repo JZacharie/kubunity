@@ -32,6 +32,6 @@ dependencies:
     repository: "https://aquasecurity.github.io/helm-charts/"
     condition: security.vulnerabilityScanner.installOperator
   - name: argo-cd
-    version: "10.4.0"
+    version: "10.2.1"
     repository: "https://argoproj.github.io/argo-helm"
     condition: gitops.installOperator

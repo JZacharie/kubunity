@@ -1,0 +1,15 @@
+dependencies:
+- name: kyverno
+  repository: https://kyverno.github.io/kyverno/
+  version: 3.8.2
+- name: external-secrets
+  repository: https://charts.external-secrets.io
+  version: 2.9.0
+- name: trivy-operator
+  repository: https://aquasecurity.github.io/helm-charts/
+  version: 0.35.0
+- name: argo-cd
+  repository: https://argoproj.github.io/argo-helm
+  version: 10.2.1
+digest: sha256:d0455c995b3b438b3d9e6b99f07855bf274b0b684514312940028645d1a3d13e
+generated: "2026-08-18T10:16:13.353907764+02:00"
