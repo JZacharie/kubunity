@@ -1,11 +1,26 @@
-# Helm dependencies (downloaded subcharts)
+# Rust compilation artifacts
+target/
+**/*.rs.bk
+Cargo.lock.orig
+
+# Helm dependencies & archives
 charts/*/charts/
 charts/*/tmpcharts/
 *.tgz
+
+# Test coverage & reports
+coverage/
+.coverage/
+*.profraw
+*.profdata
+*.log
 
 # OS & IDE metadata
 .DS_Store
 .idea/
 .vscode/
 *.swp
+*.swo
 *~
+.env
+.env.local
