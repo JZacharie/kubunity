@@ -22,6 +22,15 @@ jobs:
         with:
           version: v3.14.0
 
+      - name: Add Helm Repositories & Build Dependencies
+        run: |
+          helm repo add kyverno https://kyverno.github.io/kyverno/
+          helm repo add external-secrets https://charts.external-secrets.io
+          helm repo add aqua https://aquasecurity.github.io/helm-charts/
+          helm repo add argo-cd https://argoproj.github.io/argo-helm
+          helm repo update
+          helm dependency build charts/kubunity
+
       - name: Helm Lint - Kubunity Core
         run: |
           helm lint charts/kubunity
@@ -35,5 +44,7 @@ jobs:
 
       - name: Helm Template Validation
         run: |
-          helm template test-kubunity charts/kubunity -f charts/kubunity/profiles/values-cloud.yaml > /dev/null
+          helm template test-kubunity-dev charts/kubunity -f charts/kubunity/profiles/values-dev.yaml > /dev/null
+          helm template test-kubunity-cloud charts/kubunity -f charts/kubunity/profiles/values-cloud.yaml > /dev/null
+          helm template test-kubunity-edge charts/kubunity -f charts/kubunity/profiles/values-edge.yaml > /dev/null
           helm template test-microservice golden-paths/microservice > /dev/null
