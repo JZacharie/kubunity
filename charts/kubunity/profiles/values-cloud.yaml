@@ -46,8 +46,17 @@ networking:
       enabled: true
 
 observability:
+  openTelemetryCollector:
+    enabled: true
+    mode: "deployment"
+  openobserve:
+    enabled: true
+    endpoint: "http://o2-openobserve-router.openobserve.svc:5080/api/default"
+    streamName: "k8s_cloud_telemetry"
   kusanagi:
     enabled: true
+    openobserve:
+      enabled: true
     ingress:
       enabled: true
       className: "traefik"

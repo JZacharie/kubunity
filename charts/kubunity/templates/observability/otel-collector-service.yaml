@@ -1,0 +1,28 @@
+{{- if .Values.observability.openTelemetryCollector.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kubunity.fullname" . }}-otel-collector
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+    app.kubernetes.io/component: "opentelemetry-collector"
+spec:
+  type: {{ .Values.observability.openTelemetryCollector.service.type | default "ClusterIP" }}
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+      protocol: TCP
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+      protocol: TCP
+    - name: metrics
+      port: 8888
+      targetPort: 8888
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: otel-collector
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

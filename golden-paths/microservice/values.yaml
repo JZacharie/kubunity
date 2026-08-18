@@ -80,3 +80,10 @@ probes:
       port: 8080
     initialDelaySeconds: 5
     periodSeconds: 10
+
+openTelemetry:
+  enabled: true
+  otlpEndpoint: "http://kubunity-otel-collector.kubunity-system.svc:4318"
+  otlpProtocol: "http/protobuf"
+  serviceName: "" # Default to fullname
+  environment: "" # Default to cluster environment

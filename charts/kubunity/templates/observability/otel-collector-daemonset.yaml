@@ -1,0 +1,91 @@
+{{- if .Values.observability.openTelemetryCollector.enabled }}
+{{- if eq (.Values.observability.openTelemetryCollector.mode | default "deployment") "daemonset" }}
+apiVersion: apps/v1
+kind: DaemonSet
+{{- else }}
+apiVersion: apps/v1
+kind: Deployment
+{{- end }}
+metadata:
+  name: {{ include "kubunity.fullname" . }}-otel-collector
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+    app.kubernetes.io/component: "opentelemetry-collector"
+spec:
+  {{- if ne (.Values.observability.openTelemetryCollector.mode | default "deployment") "daemonset" }}
+  replicas: {{ .Values.observability.openTelemetryCollector.replicaCount | default 1 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: otel-collector
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: otel-collector
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: "opentelemetry-collector"
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/observability/otel-collector-configmap.yaml") . | sha256sum }}
+    spec:
+      serviceAccountName: {{ include "kubunity.fullname" . }}-otel-collector
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: otel-collector
+          image: "{{ .Values.observability.openTelemetryCollector.image.repository }}:{{ .Values.observability.openTelemetryCollector.image.tag }}"
+          imagePullPolicy: {{ .Values.observability.openTelemetryCollector.image.pullPolicy | default "IfNotPresent" }}
+          command:
+            - "/otelcol-contrib"
+            - "--config=/conf/relay.yaml"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          env:
+            {{- if .Values.observability.openobserve.enabled }}
+            - name: OPENOBSERVE_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.observability.openobserve.auth.secretName | default (printf "%s-openobserve-auth" (include "kubunity.fullname" .)) }}
+                  key: {{ .Values.observability.openobserve.auth.secretKey | default "authorization" }}
+            {{- end }}
+          ports:
+            - name: otlp-grpc
+              containerPort: 4317
+              protocol: TCP
+            - name: otlp-http
+              containerPort: 4318
+              protocol: TCP
+            - name: metrics
+              containerPort: 8888
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.observability.openTelemetryCollector.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /conf
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "kubunity.fullname" . }}-otel-collector-config
+{{- end }}

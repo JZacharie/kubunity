@@ -62,6 +62,14 @@ spec:
             - name: OLLAMA_URL
               value: {{ .Values.observability.kusanagi.ai.ollamaUrl | default "http://ollama.ai.svc:11434" | quote }}
             {{- end }}
+            {{- if .Values.observability.kusanagi.openobserve.enabled }}
+            - name: OPENOBSERVE_URL
+              value: {{ .Values.observability.kusanagi.openobserve.url | quote }}
+            - name: OPENOBSERVE_ORG
+              value: {{ .Values.observability.kusanagi.openobserve.org | quote }}
+            - name: OPENOBSERVE_STREAM
+              value: {{ .Values.observability.kusanagi.openobserve.stream | quote }}
+            {{- end }}
           ports:
             - name: http
               containerPort: 8080

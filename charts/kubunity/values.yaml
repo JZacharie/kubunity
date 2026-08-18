@@ -78,9 +78,45 @@ networking:
       enabled: true # Applique la CiliumClusterwideNetworkPolicy de base (L7 DNS inspection)
 
 # ------------------------------------------------------------------------------
-# 3. OBSERVABILITÉ, DASHBOARD & ASSISTANT IA (Kusanagi)
+# 3. OBSERVABILITÉ UNIFIÉE (OTel, OpenObserve, Kusanagi)
 # ------------------------------------------------------------------------------
 observability:
+  # OpenTelemetry Collector (Relay OTLP gRPC/HTTP + Scraping Prometheus + Logs)
+  openTelemetryCollector:
+    enabled: false
+    mode: "deployment" # deployment | daemonset
+    replicaCount: 1
+    image:
+      repository: "otel/opentelemetry-collector-contrib"
+      tag: "0.96.0"
+      pullPolicy: "IfNotPresent"
+    logLevel: "info"
+    rbac:
+      create: true
+    service:
+      type: "ClusterIP"
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+
+  # OpenObserve (Moteur d'indexation et stockage analytique Logs/Traces/Metrics)
+  openobserve:
+    enabled: false
+    endpoint: "http://o2-openobserve-router.openobserve.svc:5080/api/default"
+    streamName: "k8s_telemetry"
+    auth:
+      createSecret: false
+      secretName: ""
+      secretKey: "authorization"
+      authorizationHeader: "Basic cm9vdEBleGFtcGxlLmNvbTpDb21wbGV4cGFzcyMxMjM="
+      username: "root@example.com"
+      password: ""
+
+  # Dashboard Temps Réel & Assistant IA Kusanagi
   kusanagi:
     enabled: false # Activer pour déployer le Dashboard Kusanagi
     replicaCount: 1
@@ -113,6 +149,11 @@ observability:
     ciliumHubble:
       enabled: false
       relayUrl: "http://hubble-relay.kube-system.svc:80"
+    openobserve:
+      enabled: false
+      url: "http://o2-openobserve-router.openobserve.svc:5080"
+      org: "default"
+      stream: "kusanagi"
     ai:
       enabled: false
       ollamaUrl: "http://ollama.ai.svc:11434"

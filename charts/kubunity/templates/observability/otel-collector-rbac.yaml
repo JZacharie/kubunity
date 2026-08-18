@@ -1,0 +1,47 @@
+{{- if and .Values.observability.openTelemetryCollector.enabled .Values.observability.openTelemetryCollector.rbac.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "kubunity.fullname" . }}-otel-collector
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+    app.kubernetes.io/component: "opentelemetry-collector"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kubunity.fullname" . }}-otel-collector
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["nodes", "nodes/proxy", "nodes/metrics", "services", "endpoints", "pods", "namespaces"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["daemonsets", "deployments", "replicasets", "statefulsets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["extensions"]
+    resources: ["daemonsets", "deployments", "replicasets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "watch"]
+  - nonResourceURLs: ["/metrics", "/metrics/cadvisor"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "kubunity.fullname" . }}-otel-collector
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "kubunity.fullname" . }}-otel-collector
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "kubunity.fullname" . }}-otel-collector
+{{- end }}

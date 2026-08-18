@@ -41,5 +41,16 @@ spec:
           readinessProbe:
             {{- toYaml .Values.probes.readiness | nindent 12 }}
           {{- end }}
+          {{- if .Values.openTelemetry.enabled }}
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ .Values.openTelemetry.otlpEndpoint | quote }}
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: {{ .Values.openTelemetry.otlpProtocol | quote }}
+            - name: OTEL_SERVICE_NAME
+              value: {{ default (include "microservice.fullname" .) .Values.openTelemetry.serviceName | quote }}
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name={{ default (include "microservice.fullname" .) .Values.openTelemetry.serviceName }},k8s.namespace.name={{ .Release.Namespace }}"
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

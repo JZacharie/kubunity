@@ -23,6 +23,8 @@ L'approche repose sur un principe clé : **ne pas réinventer les briques d'infr
 │ • ESO (AWS/Vault)│    │ • ESO (Light)    │    │ • ESO (Mock/None)│
 │ • Trivy Scanner  │    │ • Micro-Runtime  │    │ • Local FastLoop │
 │ • Strict NetPol  │    │ • NetPol         │    │ • Dev Namespaces │
+│ • OTel Collector │    │ • Light Metrics  │    │ • Local OTel/Logs│
+│ • OpenObserve Hub│    │ • Edge Forwarder │    │ • Kusanagi Dev UI│
 └──────────────────┘    └──────────────────┘    └──────────────────┘
 ```
 
