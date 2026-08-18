@@ -1,0 +1,39 @@
+name: Helm Lint and Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Helm Lint - Kubunity Core
+        run: |
+          helm lint charts/kubunity
+          helm lint charts/kubunity -f charts/kubunity/profiles/values-dev.yaml
+          helm lint charts/kubunity -f charts/kubunity/profiles/values-cloud.yaml
+          helm lint charts/kubunity -f charts/kubunity/profiles/values-edge.yaml
+
+      - name: Helm Lint - Golden Path Microservice
+        run: |
+          helm lint golden-paths/microservice
+
+      - name: Helm Template Validation
+        run: |
+          helm template test-kubunity charts/kubunity -f charts/kubunity/profiles/values-cloud.yaml > /dev/null
+          helm template test-microservice golden-paths/microservice > /dev/null

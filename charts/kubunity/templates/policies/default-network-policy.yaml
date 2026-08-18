@@ -1,0 +1,58 @@
+{{- if and .Values.security.kyverno.enabled .Values.security.kyverno.policies.autoGenerateNetworkPolicies.enabled }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kubunity-generate-default-network-policy
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+    kubunity.io/policy-category: "zero-trust"
+  annotations:
+    policies.kyverno.io/title: "Kubunity : Génération Automatique de NetworkPolicy"
+    policies.kyverno.io/category: "Network Security"
+    policies.kyverno.io/severity: "medium"
+    policies.kyverno.io/description: >-
+      Génère automatiquement une NetworkPolicy par défaut autorisant le trafic intra-namespace
+      et le DNS tout en isolant le namespace des flux non autorisés.
+spec:
+  rules:
+    - name: generate-default-netpol
+      match:
+        any:
+        - resources:
+            kinds:
+              - Namespace
+      exclude:
+        any:
+        - resources:
+            namespaces:
+              - kube-system
+              - kube-public
+              - kube-node-lease
+              - default
+      generate:
+        apiVersion: networking.k8s.io/v1
+        kind: NetworkPolicy
+        name: default-intra-namespace-policy
+        namespace: "{{ `{{request.object.metadata.name}}` }}"
+        synchronize: true
+        data:
+          metadata:
+            labels:
+              app.kubernetes.io/managed-by: kubunity
+          spec:
+            podSelector: {}
+            policyTypes:
+              - Ingress
+              - Egress
+            ingress:
+              - from:
+                  - podSelector: {} # Autorise les flux intra-namespace
+            egress:
+              - to:
+                  - podSelector: {} # Autorise les flux intra-namespace
+              - ports:
+                  - protocol: UDP
+                    port: 53
+                  - protocol: TCP
+                    port: 53 # Autorise la résolution DNS CoreDNS
+{{- end }}

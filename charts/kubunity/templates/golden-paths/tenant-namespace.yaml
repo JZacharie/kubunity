@@ -1,0 +1,58 @@
+{{- if and .Values.goldenPaths.enabled .Values.goldenPaths.tenants }}
+{{- range .Values.goldenPaths.tenants }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .name }}
+  labels:
+    app.kubernetes.io/managed-by: kubunity
+    kubunity.io/tenant: {{ .name | quote }}
+    kubunity.io/environment: {{ .environment | default $.Values.cluster.environment | quote }}
+    pod-security.kubernetes.io/enforce: {{ .podSecurityStandard | default "baseline" | quote }}
+    pod-security.kubernetes.io/audit: "restricted"
+    pod-security.kubernetes.io/warn: "restricted"
+---
+{{- if .quotas }}
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: {{ .name }}-quota
+  namespace: {{ .name }}
+  labels:
+    app.kubernetes.io/managed-by: kubunity
+    kubunity.io/tenant: {{ .name | quote }}
+spec:
+  hard:
+    {{- if .quotas.requestsCpu }}
+    requests.cpu: {{ .quotas.requestsCpu | quote }}
+    {{- end }}
+    {{- if .quotas.requestsMemory }}
+    requests.memory: {{ .quotas.requestsMemory | quote }}
+    {{- end }}
+    {{- if .quotas.limitsCpu }}
+    limits.cpu: {{ .quotas.limitsCpu | quote }}
+    {{- end }}
+    {{- if .quotas.limitsMemory }}
+    limits.memory: {{ .quotas.limitsMemory | quote }}
+    {{- end }}
+{{- end }}
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: {{ .name }}-default-limits
+  namespace: {{ .name }}
+  labels:
+    app.kubernetes.io/managed-by: kubunity
+spec:
+  limits:
+    - default:
+        cpu: "500m"
+        memory: "512Mi"
+      defaultRequest:
+        cpu: "100m"
+        memory: "128Mi"
+      type: Container
+{{- end }}
+{{- end }}

@@ -1,0 +1,37 @@
+apiVersion: v2
+name: kubunity
+description: "Kubunity : Socle Helm unifié et modulaire pour la gestion et la gouvernance de clusters Kubernetes via l'écosystème CNCF."
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - kubernetes
+  - gitops
+  - governance
+  - kyverno
+  - external-secrets
+  - multi-cluster
+  - cncf
+home: https://github.com/JZacharie/kubunity
+maintainers:
+  - name: JZacharie
+    email: contact@kubunity.io
+
+# Dépendances CNCF optionnelles (activables via values.yaml / umbrella dependencies)
+dependencies:
+  - name: kyverno
+    version: "3.2.6"
+    repository: "https://kyverno.github.io/kyverno/"
+    condition: security.kyverno.installOperator
+  - name: external-secrets
+    version: "0.9.19"
+    repository: "https://charts.external-secrets.io"
+    condition: security.secrets.installOperator
+  - name: trivy-operator
+    version: "0.22.0"
+    repository: "https://aquasecurity.github.io/helm-charts/"
+    condition: security.vulnerabilityScanner.installOperator
+  - name: argo-cd
+    version: "6.12.0"
+    repository: "https://argoproj.github.io/argo-helm"
+    condition: gitops.installOperator

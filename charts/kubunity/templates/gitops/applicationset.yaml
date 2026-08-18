@@ -1,0 +1,36 @@
+{{- if and .Values.gitops.enabled .Values.gitops.appOfApps.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: kubunity-fleet-applications
+  namespace: argocd
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+spec:
+  generators:
+    - git:
+        repoURL: {{ .Values.gitops.appOfApps.repoURL | quote }}
+        revision: {{ .Values.gitops.appOfApps.targetRevision | quote }}
+        directories:
+          - path: "{{ .Values.gitops.appOfApps.basePath }}/*"
+  template:
+    metadata:
+      name: "kubunity-{{ `{{path.basename}}` }}"
+      labels:
+        kubunity.io/managed-by: "applicationset"
+    spec:
+      project: default
+      source:
+        repoURL: {{ .Values.gitops.appOfApps.repoURL | quote }}
+        targetRevision: {{ .Values.gitops.appOfApps.targetRevision | quote }}
+        path: "{{ `{{path}}` }}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "kubunity-{{ `{{path.basename}}` }}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+{{- end }}

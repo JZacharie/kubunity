@@ -1,0 +1,45 @@
+{{- if and .Values.security.kyverno.enabled .Values.security.kyverno.policies.requireResources.enabled }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kubunity-require-resource-requests-limits
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+    kubunity.io/policy-category: "governance"
+  annotations:
+    policies.kyverno.io/title: "Kubunity : Exigence des Requests & Limits CPU/Mémoire"
+    policies.kyverno.io/category: "FinOps & Best Practices"
+    policies.kyverno.io/severity: "medium"
+    policies.kyverno.io/description: >-
+      Garantit que chaque conteneur définit ses requêtes et limites de ressources (CPU et Mémoire)
+      afin d'éviter l'épuisement des nœuds et d'optimiser l'ordonnancement FinOps.
+spec:
+  validationFailureAction: {{ .Values.security.kyverno.validationFailureAction | default "Audit" }}
+  background: true
+  rules:
+    - name: validate-resources
+      match:
+        any:
+        - resources:
+            kinds:
+              - Pod
+      exclude:
+        any:
+        - resources:
+            namespaces:
+              - kube-system
+              - kube-public
+              - kube-node-lease
+      validate:
+        message: "Chaque conteneur doit obligatoirement définir des 'requests' et 'limits' pour le CPU et la mémoire."
+        pattern:
+          spec:
+            containers:
+              - resources:
+                  requests:
+                    memory: "?*"
+                    cpu: "?*"
+                  limits:
+                    memory: "?*"
+                    cpu: "?*"
+{{- end }}

@@ -1,0 +1,33 @@
+# Profil Kubunity : Développement Local (Kind / K3d / Minikube)
+cluster:
+  name: "local-dev"
+  environment: "development"
+  profile: "dev"
+
+security:
+  kyverno:
+    enabled: true
+    validationFailureAction: "Audit" # Permissif pour accélérer les tests locaux
+    policies:
+      disallowRoot:
+        enabled: true
+      requireResources:
+        enabled: false
+      disallowLatestTag:
+        enabled: false # Permet d'utiliser les images locales :latest
+      autoGenerateNetworkPolicies:
+        enabled: false # Ne bloque pas les communications locales impromptues
+
+  secrets:
+    enabled: false
+
+goldenPaths:
+  enabled: true
+  tenants:
+    - name: "demo-app"
+      environment: "development"
+      quotas:
+        requestsCpu: "1"
+        requestsMemory: "1Gi"
+        limitsCpu: "2"
+        limitsMemory: "2Gi"

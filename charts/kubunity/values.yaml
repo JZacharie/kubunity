@@ -1,0 +1,99 @@
+# ------------------------------------------------------------------------------
+# KUBUNITY : Configuration Globale & Abstraction CNCF
+# ------------------------------------------------------------------------------
+
+# Informations d'identification du cluster
+cluster:
+  name: "kubunity-cluster"
+  environment: "development" # development | staging | production
+  # Profils disponibles : 'cloud' (EKS/GKE/AKS), 'edge' (K3s/IoT), 'dev' (Kind/K3d/Local)
+  profile: "dev"
+  region: "eu-west-1"
+
+# ------------------------------------------------------------------------------
+# 1. GOUVERNANCE & SÉCURITÉ (Policy-as-Code & Scanning)
+# ------------------------------------------------------------------------------
+security:
+  # Kyverno Policy Engine
+  kyverno:
+    enabled: true
+    installOperator: false # Activer à true pour installer le sous-chart Kyverno via Helm
+    enforceBaseline: true # Active le standard Pod Security Standard Baseline (Audit ou Enforce)
+    validationFailureAction: "Audit" # 'Audit' en dev/staging, 'Enforce' en production
+    policies:
+      disallowRoot:
+        enabled: true
+      requireResources:
+        enabled: true
+      disallowLatestTag:
+        enabled: true
+      autoGenerateNetworkPolicies:
+        enabled: true
+
+  # External Secrets Operator (ESO)
+  secrets:
+    enabled: true
+    installOperator: false # Activer à true pour installer le sous-chart External-Secrets
+    createClusterSecretStore: true
+    backend:
+      type: "vault" # vault | aws | azure | gcp
+      vault:
+        server: "https://vault.example.com"
+        path: "secret"
+        version: "v2"
+        auth:
+          tokenSecretRef:
+            name: "vault-token"
+            key: "token"
+            namespace: "kube-system"
+      aws:
+        region: "eu-west-1"
+        service: "SecretsManager"
+      azure:
+        vaultUrl: "https://myvault.vault.azure.net"
+      gcp:
+        projectID: "my-gcp-project"
+
+  # Analyse continue des vulnérabilités (Trivy Operator)
+  vulnerabilityScanner:
+    enabled: false
+    installOperator: false
+
+# ------------------------------------------------------------------------------
+# 2. GITOPS & PILOTAGE MULTI-CLUSTER (ArgoCD / ApplicationSets)
+# ------------------------------------------------------------------------------
+gitops:
+  enabled: true
+  installOperator: false # Activer si le cluster sert de hub de contrôle ArgoCD
+  provider: "argocd"
+  appOfApps:
+    enabled: false
+    repoURL: "https://github.com/JZacharie/kubunity-fleet.git"
+    targetRevision: "HEAD"
+    basePath: "clusters"
+
+# ------------------------------------------------------------------------------
+# 3. EXPÉRIENCE DÉVELOPPEUR & GOLDEN PATHS (Tenants & Onboarding)
+# ------------------------------------------------------------------------------
+goldenPaths:
+  enabled: true
+  tenants: []
+    # Exemple d'onboarding simplifié :
+    # - name: "team-alpha"
+    #   environment: "development"
+    #   quotas:
+    #     requestsCpu: "2"
+    #     requestsMemory: "4Gi"
+    #     limitsCpu: "4"
+    #     limitsMemory: "8Gi"
+    #   networkIsolation: true
+    #   admins:
+    #     - "john.doe@example.com"
+
+# ------------------------------------------------------------------------------
+# 4. SURCHARGE DES SOUS-CHARTS CNCF (Optionnel)
+# ------------------------------------------------------------------------------
+# kyverno: {}
+# external-secrets: {}
+# trivy-operator: {}
+# argo-cd: {}

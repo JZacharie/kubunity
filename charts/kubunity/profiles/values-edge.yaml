@@ -1,0 +1,26 @@
+# Profil Kubunity : Edge & K3s (Empreinte mémoire ultra-légère)
+cluster:
+  name: "edge-node-01"
+  environment: "edge"
+  profile: "edge"
+
+security:
+  kyverno:
+    enabled: true
+    validationFailureAction: "Audit"
+    policies:
+      disallowRoot:
+        enabled: true
+      requireResources:
+        enabled: false # Optionnel en edge contraint
+      disallowLatestTag:
+        enabled: true
+      autoGenerateNetworkPolicies:
+        enabled: true
+
+  secrets:
+    enabled: true
+    createClusterSecretStore: false # Les secrets peuvent être pré-provisionnés ou gérés par SealedSecrets
+
+gitops:
+  enabled: false # Piloté depuis le Hub central

@@ -1,0 +1,41 @@
+{{- if and .Values.security.kyverno.enabled .Values.security.kyverno.policies.disallowLatestTag.enabled }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kubunity-disallow-latest-tag
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+    kubunity.io/policy-category: "security"
+  annotations:
+    policies.kyverno.io/title: "Kubunity : Interdiction du Tag :latest"
+    policies.kyverno.io/category: "Supply Chain Security"
+    policies.kyverno.io/severity: "medium"
+    policies.kyverno.io/description: >-
+      Exige l'utilisation de versions d'images immuables ou de digests sha256. L'utilisation du tag ':latest'
+      est interdite en environnement managé par Kubunity.
+spec:
+  validationFailureAction: {{ .Values.security.kyverno.validationFailureAction | default "Audit" }}
+  background: true
+  rules:
+    - name: validate-image-tag
+      match:
+        any:
+        - resources:
+            kinds:
+              - Pod
+      exclude:
+        any:
+        - resources:
+            namespaces:
+              - kube-system
+              - kube-public
+              - kube-node-lease
+      validate:
+        message: "L'utilisation du tag d'image ':latest' ou l'absence de tag explicite est interdite."
+        pattern:
+          spec:
+            containers:
+              - image: "!*:latest"
+            =(initContainers):
+              - image: "!*:latest"
+{{- end }}

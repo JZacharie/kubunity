@@ -1,0 +1,6 @@
+apiVersion: v2
+name: microservice
+description: "Golden Path Kubunity : Blueprint applicatif 12-Factor standardisé avec Ingress TLS, HPA, NetworkPolicy et Probes pré-configurés."
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

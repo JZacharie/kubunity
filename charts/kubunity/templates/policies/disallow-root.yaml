@@ -1,0 +1,43 @@
+{{- if and .Values.security.kyverno.enabled .Values.security.kyverno.policies.disallowRoot.enabled }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kubunity-disallow-root
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+    kubunity.io/policy-category: "security"
+  annotations:
+    policies.kyverno.io/title: "Kubunity : Interdiction d'exécution en Root"
+    policies.kyverno.io/category: "Pod Security Standards"
+    policies.kyverno.io/severity: "medium"
+    policies.kyverno.io/subject: "Pod"
+    policies.kyverno.io/description: >-
+      Les conteneurs doivent impérativement s'exécuter sous un utilisateur non-root
+      (runAsNonRoot: true) pour respecter les principes de sécurité de défense en profondeur.
+spec:
+  validationFailureAction: {{ .Values.security.kyverno.validationFailureAction | default "Audit" }}
+  background: true
+  rules:
+    - name: check-runAsNonRoot
+      match:
+        any:
+        - resources:
+            kinds:
+              - Pod
+      exclude:
+        any:
+        - resources:
+            namespaces:
+              - kube-system
+              - kube-public
+              - kube-node-lease
+      validate:
+        message: "L'exécution en tant qu'utilisateur root est interdite par la gouvernance Kubunity. Spécifiez runAsNonRoot: true."
+        pattern:
+          spec:
+            =(securityContext):
+              =(runAsNonRoot): true
+            containers:
+              - =(securityContext):
+                  =(runAsNonRoot): true
+{{- end }}

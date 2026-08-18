@@ -1,0 +1,41 @@
+# Profil Kubunity : Cloud Entreprise (EKS, GKE, AKS, OpenShift)
+cluster:
+  name: "prod-cloud-eu-west-1"
+  environment: "production"
+  profile: "cloud"
+  region: "eu-west-1"
+
+security:
+  kyverno:
+    enabled: true
+    validationFailureAction: "Enforce" # Blocage strict des non-conformités en production
+    policies:
+      disallowRoot:
+        enabled: true
+      requireResources:
+        enabled: true
+      disallowLatestTag:
+        enabled: true
+      autoGenerateNetworkPolicies:
+        enabled: true
+
+  secrets:
+    enabled: true
+    createClusterSecretStore: true
+    backend:
+      type: "aws" # ou vault / gcp / azure
+      aws:
+        region: "eu-west-1"
+        service: "SecretsManager"
+
+  vulnerabilityScanner:
+    enabled: true
+
+gitops:
+  enabled: true
+  provider: "argocd"
+  appOfApps:
+    enabled: true
+    repoURL: "https://github.com/org/kubunity-fleet-prod.git"
+    targetRevision: "main"
+    basePath: "clusters/prod"
