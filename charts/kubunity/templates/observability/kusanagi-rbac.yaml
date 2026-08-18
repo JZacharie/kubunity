@@ -28,10 +28,28 @@ rules:
     resources: ["ingresses", "networkpolicies"]
     verbs: ["get", "list", "watch"]
   - apiGroups: ["kyverno.io"]
-    resources: ["clusterpolicies", "policies", "policyreports", "clusterpolicyreports"]
+    resources: ["clusterpolicies", "policies", "cleanuppolicies", "clustercleanuppolicies"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["reports.kyverno.io"]
+    resources: ["ephemeralreports", "clusterephemeralreports"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["wgpolicyk8s.io"]
+    resources: ["policyreports", "clusterpolicyreports"]
     verbs: ["get", "list", "watch"]
   - apiGroups: ["aquasecurity.github.io"]
-    resources: ["vulnerabilityreports", "configauditreports", "rbacassessmentreports"]
+    resources:
+      - vulnerabilityreports
+      - clustervulnerabilityreports
+      - configauditreports
+      - clusterconfigauditreports
+      - rbacassessmentreports
+      - clusterrbacassessmentreports
+      - infraassessmentreports
+      - clusterinfraassessmentreports
+      - clustercompliancereports
+      - exposedsecretreports
+      - sbomreports
+      - clustersbomreports
     verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
