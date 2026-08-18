@@ -1,0 +1,36 @@
+# ==============================================================================
+# Hardened Multi-Stage Go Build (Zero CVE Base Image)
+# ==============================================================================
+
+# --- Stage 1: Build & Dependencies ---
+FROM golang:1.24-alpine3.21 AS builder
+
+RUN apk update && apk upgrade && apk add --no-cache git ca-certificates tzdata
+
+WORKDIR /workspace
+
+# Cache dependencies
+COPY go.mod go.sum* ./
+RUN go mod download
+
+# Build static non-root binary
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+    -ldflags="-w -s -extldflags '-static'" \
+    -a -installsuffix cgo \
+    -o /workspace/bin/app .
+
+# --- Stage 2: Distroless Minimal Runner (Zero CVE, Non-Root) ---
+FROM gcr.io/distroless/static-debian12:nonroot
+
+WORKDIR /
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=builder /workspace/bin/app /app
+
+# Non-root user (UID 65532 is standard nonroot)
+USER 65532:65532
+
+EXPOSE 8080
+
+ENTRYPOINT ["/app"]

@@ -1,0 +1,38 @@
+# ==============================================================================
+# Hardened Multi-Stage Node.js Build (Node 22 LTS / Alpine 3.21, Non-Root)
+# ==============================================================================
+
+# --- Stage 1: Build & Dependencies ---
+FROM node:22-alpine3.21 AS builder
+
+RUN apk update && apk upgrade && apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --ignore-scripts
+
+COPY . .
+RUN npm run build 2>/dev/null || true
+RUN npm prune --production
+
+# --- Stage 2: Minimal Production Runner ---
+FROM node:22-alpine3.21 AS runner
+
+RUN apk update && apk upgrade && apk add --no-cache tini ca-certificates && rm -rf /var/cache/apk/*
+
+WORKDIR /app
+
+# Run as built-in node non-root user (UID 1000)
+USER node:node
+
+COPY --chown=node:node --from=builder /app/package*.json ./
+COPY --chown=node:node --from=builder /app/node_modules ./node_modules
+COPY --chown=node:node --from=builder /app/dist ./dist 2>/dev/null || COPY --chown=node:node --from=builder /app .
+
+ENV NODE_ENV=production
+ENV PORT=8080
+EXPOSE 8080
+
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["node", "dist/index.js"]
