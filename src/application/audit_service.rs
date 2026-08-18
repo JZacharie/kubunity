@@ -1,8 +1,8 @@
-use std::path::Path;
-use std::sync::Arc;
-use anyhow::{Context, Result};
 use crate::domain::{ClusterProfile, ComplianceReport};
 use crate::ports::{PolicyAuditor, TemplateEngine};
+use anyhow::{Context, Result};
+use std::path::Path;
+use std::sync::Arc;
 
 pub struct AuditService {
     template_engine: Arc<dyn TemplateEngine>,

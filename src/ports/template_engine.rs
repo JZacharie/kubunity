@@ -1,7 +1,7 @@
+use crate::domain::ClusterProfile;
+use anyhow::Result;
 use async_trait::async_trait;
 use std::path::Path;
-use anyhow::Result;
-use crate::domain::ClusterProfile;
 
 #[async_trait]
 pub trait TemplateEngine: Send + Sync {

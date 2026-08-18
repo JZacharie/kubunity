@@ -1,8 +1,8 @@
-use std::path::Path;
-use std::sync::Arc;
-use anyhow::{Context, Result};
 use crate::domain::ClusterProfile;
 use crate::ports::{ClusterDriver, TemplateEngine};
+use anyhow::{Context, Result};
+use std::path::Path;
+use std::sync::Arc;
 
 pub struct BootstrapService {
     template_engine: Arc<dyn TemplateEngine>,

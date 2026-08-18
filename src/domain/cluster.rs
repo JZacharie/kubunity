@@ -27,7 +27,9 @@ impl std::str::FromStr for ClusterProfile {
             "dev" | "local" => Ok(Self::Dev),
             "cloud" | "prod" | "production" => Ok(Self::Cloud),
             "edge" | "k3s" => Ok(Self::Edge),
-            other => Err(format!("Unknown profile: '{other}'. Expected 'dev', 'cloud', or 'edge'.")),
+            other => Err(format!(
+                "Unknown profile: '{other}'. Expected 'dev', 'cloud', or 'edge'."
+            )),
         }
     }
 }

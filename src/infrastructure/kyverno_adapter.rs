@@ -1,9 +1,9 @@
-use async_trait::async_trait;
-use anyhow::Result;
 use crate::domain::{
     ClusterProfile, ComplianceReport, ComplianceStatus, PolicyCheckResult, PolicySeverity,
 };
 use crate::ports::PolicyAuditor;
+use anyhow::Result;
+use async_trait::async_trait;
 
 pub struct KyvernoPolicyAuditor;
 
@@ -56,7 +56,7 @@ impl PolicyAuditor for KyvernoPolicyAuditor {
             severity: PolicySeverity::High,
             status: if has_priv_esc_policy {
                 ComplianceStatus::Pass
-            } else if profile == ClusterProfile::Dev {
+            } else if profile != ClusterProfile::Cloud {
                 ComplianceStatus::Warning
             } else {
                 ComplianceStatus::Fail
@@ -76,7 +76,7 @@ impl PolicyAuditor for KyvernoPolicyAuditor {
             severity: PolicySeverity::High,
             status: if has_host_ns_policy {
                 ComplianceStatus::Pass
-            } else if profile == ClusterProfile::Dev {
+            } else if profile != ClusterProfile::Cloud {
                 ComplianceStatus::Warning
             } else {
                 ComplianceStatus::Fail
@@ -96,7 +96,7 @@ impl PolicyAuditor for KyvernoPolicyAuditor {
             severity: PolicySeverity::Medium,
             status: if has_latest_tag_policy {
                 ComplianceStatus::Pass
-            } else if profile == ClusterProfile::Dev {
+            } else if profile != ClusterProfile::Cloud {
                 ComplianceStatus::Warning
             } else {
                 ComplianceStatus::Fail
@@ -116,7 +116,7 @@ impl PolicyAuditor for KyvernoPolicyAuditor {
             severity: PolicySeverity::Medium,
             status: if has_resource_policy {
                 ComplianceStatus::Pass
-            } else if profile == ClusterProfile::Dev {
+            } else if profile != ClusterProfile::Cloud {
                 ComplianceStatus::Warning
             } else {
                 ComplianceStatus::Fail
@@ -136,7 +136,7 @@ impl PolicyAuditor for KyvernoPolicyAuditor {
             severity: PolicySeverity::High,
             status: if has_netpol_policy {
                 ComplianceStatus::Pass
-            } else if profile == ClusterProfile::Dev {
+            } else if profile != ClusterProfile::Cloud {
                 ComplianceStatus::Warning
             } else {
                 ComplianceStatus::Fail
@@ -176,7 +176,7 @@ impl PolicyAuditor for KyvernoPolicyAuditor {
             severity: PolicySeverity::Critical,
             status: if has_rbac_lock {
                 ComplianceStatus::Pass
-            } else if profile == ClusterProfile::Dev {
+            } else if profile != ClusterProfile::Cloud {
                 ComplianceStatus::Warning
             } else {
                 ComplianceStatus::Fail

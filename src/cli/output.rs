@@ -1,13 +1,15 @@
+use crate::domain::ComplianceReport;
 use colored::*;
 use tabled::settings::Style;
 use tabled::Table;
-use crate::domain::ComplianceReport;
 
 pub struct TerminalReporter;
 
 impl TerminalReporter {
     pub fn print_banner() {
-        println!("{}", r#"
+        println!(
+            "{}",
+            r#"
   _  ___     _                 _ _         
  | |/ / |   | |               (_) |        
  | ' /| |___| |__  _   _ _ __  _| |_ _   _ 
@@ -17,11 +19,18 @@ impl TerminalReporter {
                                       __/ |
                                      |___/ 
   Unified & Declarative Kubernetes Platform Engine [Rust]
-"#.cyan().bold());
+"#
+            .cyan()
+            .bold()
+        );
     }
 
     pub fn render_compliance_report(report: &ComplianceReport) {
-        println!("\n{}", "================================================================================".blue());
+        println!(
+            "\n{}",
+            "================================================================================"
+                .blue()
+        );
         println!(
             "{} {} | {} {} | {} {}",
             "Cluster:".bold(),
@@ -37,7 +46,11 @@ impl TerminalReporter {
                 format!("{:.1}%", report.compliance_score).red().bold()
             }
         );
-        println!("{}\n", "================================================================================".blue());
+        println!(
+            "{}\n",
+            "================================================================================"
+                .blue()
+        );
 
         let table = Table::new(&report.checks)
             .with(Style::rounded())
@@ -55,12 +68,16 @@ impl TerminalReporter {
         if report.fail_count > 0 {
             println!(
                 "{}",
-                "❌ Compliance check failed! Please review policies and manifests.".red().bold()
+                "❌ Compliance check failed! Please review policies and manifests."
+                    .red()
+                    .bold()
             );
         } else {
             println!(
                 "{}",
-                "✅ All policy and governance checks passed successfully.".green().bold()
+                "✅ All policy and governance checks passed successfully."
+                    .green()
+                    .bold()
             );
         }
     }

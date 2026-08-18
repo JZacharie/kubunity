@@ -36,7 +36,10 @@ async fn main() -> Result<()> {
         }
         Commands::Lint { profile } => {
             TerminalReporter::print_banner();
-            println!("==> Linting chart at {:?} with profile {:?}", cli.chart, profile);
+            println!(
+                "==> Linting chart at {:?} with profile {:?}",
+                cli.chart, profile
+            );
             let valid = helm_adapter.lint_chart(&cli.chart, profile).await?;
             if valid {
                 println!("✓ Helm chart passed lint checks.");
@@ -49,9 +52,14 @@ async fn main() -> Result<()> {
             let output = helm_adapter.render_profile(&cli.chart, profile).await?;
             println!("{}", output);
         }
-        Commands::Audit { profile, cluster_name } => {
+        Commands::Audit {
+            profile,
+            cluster_name,
+        } => {
             TerminalReporter::print_banner();
-            let report = audit_service.run_audit(&cli.chart, &cluster_name, profile).await?;
+            let report = audit_service
+                .run_audit(&cli.chart, &cluster_name, profile)
+                .await?;
             TerminalReporter::render_compliance_report(&report);
 
             if report.fail_count > 0 {
@@ -60,8 +68,13 @@ async fn main() -> Result<()> {
         }
         Commands::Install { profile, namespace } => {
             TerminalReporter::print_banner();
-            println!("==> Deploying Kubunity [profile: {}] into namespace [{}]...", profile, namespace);
-            bootstrap_service.bootstrap_cluster(&cli.chart, profile, &namespace).await?;
+            println!(
+                "==> Deploying Kubunity [profile: {}] into namespace [{}]...",
+                profile, namespace
+            );
+            bootstrap_service
+                .bootstrap_cluster(&cli.chart, profile, &namespace)
+                .await?;
             println!("✓ Kubunity stack deployed successfully.");
         }
         Commands::Status { namespace } => {

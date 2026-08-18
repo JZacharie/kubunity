@@ -1,9 +1,9 @@
+use crate::domain::ClusterProfile;
+use crate::ports::{ClusterDriver, TemplateEngine};
+use anyhow::{Context, Result};
 use async_trait::async_trait;
 use std::path::Path;
 use std::process::Command;
-use anyhow::{Context, Result};
-use crate::domain::ClusterProfile;
-use crate::ports::{ClusterDriver, TemplateEngine};
 
 pub struct HelmCliAdapter;
 
@@ -22,18 +22,20 @@ impl Default for HelmCliAdapter {
 #[async_trait]
 impl TemplateEngine for HelmCliAdapter {
     async fn render_profile(&self, chart_path: &Path, profile: ClusterProfile) -> Result<String> {
-        let profile_file = chart_path.join("profiles").join(format!("values-{}.yaml", profile));
+        let profile_file = chart_path
+            .join("profiles")
+            .join(format!("values-{}.yaml", profile));
 
         let mut cmd = Command::new("helm");
-        cmd.arg("template")
-            .arg("kubunity-release")
-            .arg(chart_path);
+        cmd.arg("template").arg("kubunity-release").arg(chart_path);
 
         if profile_file.exists() {
             cmd.arg("-f").arg(&profile_file);
         }
 
-        let output = cmd.output().context("Failed to execute helm template command")?;
+        let output = cmd
+            .output()
+            .context("Failed to execute helm template command")?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
@@ -49,13 +51,17 @@ impl TemplateEngine for HelmCliAdapter {
         cmd.arg("lint").arg(chart_path);
 
         if let Some(prof) = profile {
-            let profile_file = chart_path.join("profiles").join(format!("values-{}.yaml", prof));
+            let profile_file = chart_path
+                .join("profiles")
+                .join(format!("values-{}.yaml", prof));
             if profile_file.exists() {
                 cmd.arg("-f").arg(&profile_file);
             }
         }
 
-        let output = cmd.output().context("Failed to execute helm lint command")?;
+        let output = cmd
+            .output()
+            .context("Failed to execute helm lint command")?;
         Ok(output.status.success())
     }
 
@@ -78,8 +84,15 @@ impl TemplateEngine for HelmCliAdapter {
 
 #[async_trait]
 impl ClusterDriver for HelmCliAdapter {
-    async fn deploy_stack(&self, chart_path: &Path, profile: ClusterProfile, namespace: &str) -> Result<()> {
-        let profile_file = chart_path.join("profiles").join(format!("values-{}.yaml", profile));
+    async fn deploy_stack(
+        &self,
+        chart_path: &Path,
+        profile: ClusterProfile,
+        namespace: &str,
+    ) -> Result<()> {
+        let profile_file = chart_path
+            .join("profiles")
+            .join(format!("values-{}.yaml", profile));
 
         let mut cmd = Command::new("helm");
         cmd.arg("upgrade")
@@ -94,7 +107,9 @@ impl ClusterDriver for HelmCliAdapter {
             cmd.arg("-f").arg(&profile_file);
         }
 
-        let output = cmd.output().context("Failed to execute helm upgrade --install")?;
+        let output = cmd
+            .output()
+            .context("Failed to execute helm upgrade --install")?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);

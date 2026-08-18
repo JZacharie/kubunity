@@ -1,5 +1,5 @@
-use std::fmt;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use tabled::Tabled;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -68,9 +68,18 @@ pub struct ComplianceReport {
 
 impl ComplianceReport {
     pub fn new(cluster_name: String, profile: String, checks: Vec<PolicyCheckResult>) -> Self {
-        let pass_count = checks.iter().filter(|c| c.status == ComplianceStatus::Pass).count();
-        let warn_count = checks.iter().filter(|c| c.status == ComplianceStatus::Warning).count();
-        let fail_count = checks.iter().filter(|c| c.status == ComplianceStatus::Fail).count();
+        let pass_count = checks
+            .iter()
+            .filter(|c| c.status == ComplianceStatus::Pass)
+            .count();
+        let warn_count = checks
+            .iter()
+            .filter(|c| c.status == ComplianceStatus::Warning)
+            .count();
+        let fail_count = checks
+            .iter()
+            .filter(|c| c.status == ComplianceStatus::Fail)
+            .count();
         let total = checks.len();
 
         let compliance_score = if total > 0 {

@@ -1,6 +1,6 @@
+use crate::domain::ClusterProfile;
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
-use crate::domain::ClusterProfile;
 
 #[derive(Parser, Debug)]
 #[command(

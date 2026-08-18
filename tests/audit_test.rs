@@ -1,7 +1,7 @@
-use std::sync::Arc;
 use kubunity::application::AuditService;
 use kubunity::domain::{ClusterProfile, ComplianceStatus};
 use kubunity::infrastructure::{HelmCliAdapter, KyvernoPolicyAuditor};
+use std::sync::Arc;
 
 #[tokio::test]
 async fn test_audit_service_with_cloud_profile() {
@@ -19,7 +19,10 @@ async fn test_audit_service_with_cloud_profile() {
         let report = result.unwrap();
         assert_eq!(report.cluster_name, "test-cloud-cluster");
         assert_eq!(report.profile, "cloud");
-        assert!(report.checks.len() >= 6, "Expected at least 6 compliance checks");
+        assert!(
+            report.checks.len() >= 6,
+            "Expected at least 6 compliance checks"
+        );
 
         // Verify rootless check passed
         let rootless_check = report.checks.iter().find(|c| c.rule_id == "SEC-PSS-001");

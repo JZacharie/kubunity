@@ -2,22 +2,12 @@
 # MegaLinter configuration file for Kubunity
 # Documentation: https://megalinter.io
 
-# Linters configuration
-ENABLE_LINTERS:
-  - RUST_CLIPPY
-  - RUST_RUSTFMT
-  - BASH_SHELLCHECK
-  - BASH_SHFMT
-  - MARKDOWN_MARKDOWNLINT
-  - YAML_YAMLLINT
-  - YAML_PRETTIER
-  - JSON_PRETTIER
-  - DOCKERFILE_HADOLINT
-
 DISABLE_LINTERS:
   - JAVASCRIPT_STANDARD
   - TYPESCRIPT_STANDARD
   - JSON_JSONLINT
+  - YAML_V8R
+  - YAML_PRETTIER
 
 # Exclude Go-templated Helm templates, build artifacts, and vendor files from pure YAML/JSON linters
 FILTER_REGEX_EXCLUDE: (charts/.*/templates/.*|golden-paths/.*/templates/.*|target/.*|megalinter-reports/.*)

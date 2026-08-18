@@ -1,7 +1,7 @@
+use crate::domain::ClusterMetadata;
+use anyhow::{Context, Result};
 use std::fs;
 use std::path::Path;
-use anyhow::{Context, Result};
-use crate::domain::ClusterMetadata;
 
 pub struct ConfigLoader;
 
@@ -15,8 +15,7 @@ impl ConfigLoader {
 
         let cluster_section = parsed.get("cluster");
         if let Some(c) = cluster_section {
-            let metadata: ClusterMetadata = serde_yaml::from_value(c.clone())
-                .unwrap_or_default();
+            let metadata: ClusterMetadata = serde_yaml::from_value(c.clone()).unwrap_or_default();
             Ok(metadata)
         } else {
             Ok(ClusterMetadata::default())

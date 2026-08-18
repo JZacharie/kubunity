@@ -1,5 +1,5 @@
-use anyhow::Result;
 use crate::domain::Tenant;
+use anyhow::Result;
 
 pub struct TenantService;
 
@@ -13,8 +13,15 @@ impl TenantService {
             anyhow::bail!("Tenant name cannot be empty");
         }
 
-        if !tenant.name.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-') {
-            anyhow::bail!("Tenant name '{}' must be lowercase RFC 1123 compliant (a-z, 0-9, '-')", tenant.name);
+        if !tenant
+            .name
+            .chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+        {
+            anyhow::bail!(
+                "Tenant name '{}' must be lowercase RFC 1123 compliant (a-z, 0-9, '-')",
+                tenant.name
+            );
         }
 
         Ok(())
