@@ -12,15 +12,23 @@ security:
       disallowRoot:
         enabled: true
       requireResources:
-        enabled: false # Optionnel en edge contraint
+        enabled: false
       disallowLatestTag:
         enabled: true
       autoGenerateNetworkPolicies:
         enabled: true
+      disallowPrivilegeEscalation:
+        enabled: true
+      disallowHostNamespaces:
+        enabled: false
+      requireReadOnlyRootFilesystem:
+        enabled: false
+      restrictClusterAdminBindings:
+        enabled: true
 
   secrets:
     enabled: true
-    createClusterSecretStore: false # Les secrets peuvent être pré-provisionnés ou gérés par SealedSecrets
+    createClusterSecretStore: false
 
 gitops:
-  enabled: false # Piloté depuis le Hub central
+  enabled: false

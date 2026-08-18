@@ -1,0 +1,20 @@
+{{- if .Values.observability.kusanagi.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kubunity.fullname" . }}-kusanagi
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+    app.kubernetes.io/component: "observability-dashboard"
+spec:
+  type: {{ .Values.observability.kusanagi.service.type | default "ClusterIP" }}
+  ports:
+    - port: {{ .Values.observability.kusanagi.service.port | default 80 }}
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: kusanagi
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

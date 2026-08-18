@@ -1,0 +1,40 @@
+{{- if and .Values.security.kyverno.enabled .Values.security.kyverno.policies.requireReadOnlyRootFilesystem.enabled }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kubunity-require-readonly-rootfs
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+    kubunity.io/policy-category: "security"
+  annotations:
+    policies.kyverno.io/title: "Kubunity : Exigence du Système de Fichiers Racine en Lecture Seule"
+    policies.kyverno.io/category: "Pod Security Standards (Restricted)"
+    policies.kyverno.io/severity: "medium"
+    policies.kyverno.io/description: >-
+      Exige readOnlyRootFilesystem: true pour empêcher toute persistance d'artefacts malveillants
+      dans la couche conteneur éphémère.
+spec:
+  validationFailureAction: {{ .Values.security.kyverno.validationFailureAction | default "Audit" }}
+  background: true
+  rules:
+    - name: check-readonly-rootfs
+      match:
+        any:
+        - resources:
+            kinds:
+              - Pod
+      exclude:
+        any:
+        - resources:
+            namespaces:
+              - kube-system
+              - kube-public
+              - kube-node-lease
+      validate:
+        message: "Le conteneur doit avoir son système de fichiers racine en lecture seule (readOnlyRootFilesystem: true)."
+        pattern:
+          spec:
+            containers:
+              - securityContext:
+                  readOnlyRootFilesystem: true
+{{- end }}

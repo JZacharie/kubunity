@@ -1,0 +1,49 @@
+{{- if and .Values.security.kyverno.enabled .Values.security.kyverno.policies.restrictClusterAdminBindings.enabled }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kubunity-restrict-cluster-admin-bindings
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+    kubunity.io/policy-category: "governance"
+  annotations:
+    policies.kyverno.io/title: "Kubunity : Restriction des Liaisons au Rôle cluster-admin"
+    policies.kyverno.io/category: "RBAC Hardening"
+    policies.kyverno.io/severity: "high"
+    policies.kyverno.io/description: >-
+      Empêche la liaison du ClusterRole cluster-admin à des ServiceAccounts applicatifs ordinaires,
+      en limitant les autorisations globales à kube-system et aux opérateurs autorisés.
+spec:
+  validationFailureAction: {{ .Values.security.kyverno.validationFailureAction | default "Audit" }}
+  background: true
+  rules:
+    - name: block-unauthorized-cluster-admin
+      match:
+        any:
+        - resources:
+            kinds:
+              - ClusterRoleBinding
+      exclude:
+        any:
+        - subjects:
+            - kind: ServiceAccount
+              name: argocd-application-controller
+              namespace: argocd
+            - kind: ServiceAccount
+              name: default
+              namespace: kube-system
+      validate:
+        message: "L'attribution du rôle cluster-admin est restreinte pour prévenir les surprivilèges RBAC."
+        deny:
+          conditions:
+            all:
+              - key: "{{ `{{request.object.roleRef.name}}` }}"
+                operator: Equals
+                value: cluster-admin
+              - key: "{{ `{{request.object.subjects[?kind == 'ServiceAccount'].namespace}}` }}"
+                operator: AnyNotIn
+                value:
+                  - kube-system
+                  - argocd
+                  - kubunity-system
+{{- end }}

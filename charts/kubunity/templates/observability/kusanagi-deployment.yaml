@@ -1,0 +1,83 @@
+{{- if .Values.observability.kusanagi.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kubunity.fullname" . }}-kusanagi
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+    app.kubernetes.io/component: "observability-dashboard"
+spec:
+  replicas: {{ .Values.observability.kusanagi.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kusanagi
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kusanagi
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: "observability-dashboard"
+    spec:
+      serviceAccountName: {{ default "kusanagi" .Values.observability.kusanagi.serviceAccountName }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: kusanagi
+          image: "{{ .Values.observability.kusanagi.image.repository }}:{{ .Values.observability.kusanagi.image.tag }}"
+          imagePullPolicy: {{ .Values.observability.kusanagi.image.pullPolicy | default "IfNotPresent" }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: BIND_ADDR
+              value: "0.0.0.0:8080"
+            - name: RUST_LOG
+              value: {{ .Values.observability.kusanagi.logLevel | default "info" | quote }}
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            {{- if .Values.observability.kusanagi.argocd.enabled }}
+            - name: ARGOCD_SERVER
+              value: {{ .Values.observability.kusanagi.argocd.server | quote }}
+            {{- end }}
+            {{- if .Values.observability.kusanagi.trivy.enabled }}
+            - name: TRIVY_SERVER_URL
+              value: {{ .Values.observability.kusanagi.trivy.serverUrl | quote }}
+            {{- end }}
+            {{- if .Values.observability.kusanagi.ciliumHubble.enabled }}
+            - name: HUBBLE_RELAY_URL
+              value: {{ .Values.observability.kusanagi.ciliumHubble.relayUrl | quote }}
+            {{- end }}
+            {{- if .Values.observability.kusanagi.ai.enabled }}
+            - name: OLLAMA_URL
+              value: {{ .Values.observability.kusanagi.ai.ollamaUrl | default "http://ollama.ai.svc:11434" | quote }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.observability.kusanagi.resources | nindent 12 }}
+{{- end }}

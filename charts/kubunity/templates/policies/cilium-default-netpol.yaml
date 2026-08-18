@@ -1,0 +1,31 @@
+{{- if and .Values.networking.cilium.enabled .Values.networking.cilium.defaultClusterwidePolicy.enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: kubunity-cilium-default-baseline
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+    kubunity.io/policy-category: "zero-trust"
+spec:
+  description: "Kubunity : Politique globale eBPF Cilium autorisant DNS L7 et communication intra-cluster sécurisée"
+  nodeSelector: {}
+  ingress:
+    - fromEntities:
+        - cluster
+  egress:
+    - toEntities:
+        - cluster
+    # Autorise les requêtes DNS via CoreDNS avec inspection L7
+    - toEndpoints:
+        - matchLabels:
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+          rules:
+            dns:
+              - matchPattern: "*"
+{{- end }}

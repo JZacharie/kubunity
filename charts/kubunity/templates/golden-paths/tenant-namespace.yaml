@@ -54,5 +54,29 @@ spec:
         cpu: "100m"
         memory: "128Mi"
       type: Container
+{{- if $.Values.gitops.enabled }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: {{ .name }}
+  namespace: argocd
+  labels:
+    app.kubernetes.io/managed-by: kubunity
+    kubunity.io/tenant: {{ .name | quote }}
+spec:
+  description: "Projet ArgoCD managé par Kubunity pour le tenant {{ .name }}"
+  sourceRepos:
+    - "*"
+  destinations:
+    - namespace: {{ .name }}
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
+{{- end }}
 {{- end }}
 {{- end }}

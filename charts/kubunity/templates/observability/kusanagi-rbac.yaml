@@ -1,0 +1,51 @@
+{{- if and .Values.observability.kusanagi.enabled .Values.observability.kusanagi.rbac.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ default "kusanagi" .Values.observability.kusanagi.serviceAccountName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+    app.kubernetes.io/component: "observability-dashboard"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kubunity.fullname" . }}-kusanagi-reader
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "nodes", "services", "events", "persistentvolumes", "persistentvolumeclaims", "namespaces", "resourcequotas", "limitranges"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "daemonsets", "replicasets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["cronjobs", "jobs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses", "networkpolicies"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["kyverno.io"]
+    resources: ["clusterpolicies", "policies", "policyreports", "clusterpolicyreports"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["aquasecurity.github.io"]
+    resources: ["vulnerabilityreports", "configauditreports", "rbacassessmentreports"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "kubunity.fullname" . }}-kusanagi-reader-binding
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ default "kusanagi" .Values.observability.kusanagi.serviceAccountName }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "kubunity.fullname" . }}-kusanagi-reader
+{{- end }}

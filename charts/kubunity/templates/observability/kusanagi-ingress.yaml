@@ -1,0 +1,42 @@
+{{- if and .Values.observability.kusanagi.enabled .Values.observability.kusanagi.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "kubunity.fullname" . }}-kusanagi
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+  {{- with .Values.observability.kusanagi.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.observability.kusanagi.ingress.className }}
+  ingressClassName: {{ .Values.observability.kusanagi.ingress.className }}
+  {{- end }}
+  {{- if .Values.observability.kusanagi.ingress.tls }}
+  tls:
+    {{- range .Values.observability.kusanagi.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.observability.kusanagi.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType | default "Prefix" }}
+            backend:
+              service:
+                name: {{ include "kubunity.fullname" $ }}-kusanagi
+                port:
+                  number: {{ $.Values.observability.kusanagi.service.port | default 80 }}
+          {{- end }}
+    {{- end }}
+{{- end }}

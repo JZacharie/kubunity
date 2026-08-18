@@ -1,0 +1,43 @@
+{{- if and .Values.security.kyverno.enabled .Values.security.kyverno.policies.disallowPrivilegeEscalation.enabled }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kubunity-disallow-privilege-escalation
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+    kubunity.io/policy-category: "security"
+  annotations:
+    policies.kyverno.io/title: "Kubunity : Interdiction d'élévation de privilèges"
+    policies.kyverno.io/category: "Pod Security Standards (Restricted)"
+    policies.kyverno.io/severity: "high"
+    policies.kyverno.io/description: >-
+      Empêche tout conteneur d'élever ses privilèges d'exécution au runtime
+      en forçant allowPrivilegeEscalation: false dans le SecurityContext.
+spec:
+  validationFailureAction: {{ .Values.security.kyverno.validationFailureAction | default "Audit" }}
+  background: true
+  rules:
+    - name: check-allowPrivilegeEscalation
+      match:
+        any:
+        - resources:
+            kinds:
+              - Pod
+      exclude:
+        any:
+        - resources:
+            namespaces:
+              - kube-system
+              - kube-public
+              - kube-node-lease
+      validate:
+        message: "L'élévation de privilèges est interdite par Kubunity. Définissez allowPrivilegeEscalation: false."
+        pattern:
+          spec:
+            containers:
+              - securityContext:
+                  allowPrivilegeEscalation: false
+            =(initContainers):
+              - securityContext:
+                  allowPrivilegeEscalation: false
+{{- end }}

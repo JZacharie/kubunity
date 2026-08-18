@@ -7,19 +7,33 @@ cluster:
 security:
   kyverno:
     enabled: true
-    validationFailureAction: "Audit" # Permissif pour accélérer les tests locaux
+    validationFailureAction: "Audit"
     policies:
       disallowRoot:
         enabled: true
       requireResources:
         enabled: false
       disallowLatestTag:
-        enabled: false # Permet d'utiliser les images locales :latest
+        enabled: false
       autoGenerateNetworkPolicies:
-        enabled: false # Ne bloque pas les communications locales impromptues
+        enabled: false
+      disallowPrivilegeEscalation:
+        enabled: false
+      disallowHostNamespaces:
+        enabled: false
+      requireReadOnlyRootFilesystem:
+        enabled: false
+      restrictClusterAdminBindings:
+        enabled: false
 
   secrets:
     enabled: false
+
+observability:
+  kusanagi:
+    enabled: true # Pratique pour tester le dashboard en local
+    service:
+      type: "NodePort"
 
 goldenPaths:
   enabled: true

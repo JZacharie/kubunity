@@ -29,6 +29,15 @@ security:
         enabled: true
       autoGenerateNetworkPolicies:
         enabled: true
+      # Politiques avancées durcies (PSS Restricted & RBAC Hardening)
+      disallowPrivilegeEscalation:
+        enabled: true
+      disallowHostNamespaces:
+        enabled: true
+      requireReadOnlyRootFilesystem:
+        enabled: false # Recommandé à true en production durcie
+      restrictClusterAdminBindings:
+        enabled: true
 
   # External Secrets Operator (ESO)
   secrets:
@@ -60,7 +69,63 @@ security:
     installOperator: false
 
 # ------------------------------------------------------------------------------
-# 2. GITOPS & PILOTAGE MULTI-CLUSTER (ArgoCD / ApplicationSets)
+# 2. RÉSEAU & EBPF (Cilium & Hubble)
+# ------------------------------------------------------------------------------
+networking:
+  cilium:
+    enabled: false # Activer sur les clusters équipés de Cilium CNI
+    defaultClusterwidePolicy:
+      enabled: true # Applique la CiliumClusterwideNetworkPolicy de base (L7 DNS inspection)
+
+# ------------------------------------------------------------------------------
+# 3. OBSERVABILITÉ, DASHBOARD & ASSISTANT IA (Kusanagi)
+# ------------------------------------------------------------------------------
+observability:
+  kusanagi:
+    enabled: false # Activer pour déployer le Dashboard Kusanagi
+    replicaCount: 1
+    image:
+      repository: "ghcr.io/jzacharie/kusanagi"
+      tag: "v0.3.0"
+      pullPolicy: "IfNotPresent"
+    logLevel: "info"
+    serviceAccountName: "kusanagi"
+    rbac:
+      create: true
+    service:
+      type: "ClusterIP"
+      port: 80
+    ingress:
+      enabled: false
+      className: "traefik"
+      hosts:
+        - host: "kusanagi.example.com"
+          paths:
+            - path: /
+              pathType: Prefix
+      tls: []
+    argocd:
+      enabled: true
+      server: "argocd-server.argocd.svc:80"
+    trivy:
+      enabled: true
+      serverUrl: "http://trivy-operator.kubunity-system.svc:8080"
+    ciliumHubble:
+      enabled: false
+      relayUrl: "http://hubble-relay.kube-system.svc:80"
+    ai:
+      enabled: false
+      ollamaUrl: "http://ollama.ai.svc:11434"
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+
+# ------------------------------------------------------------------------------
+# 4. GITOPS & PILOTAGE MULTI-CLUSTER (ArgoCD / ApplicationSets)
 # ------------------------------------------------------------------------------
 gitops:
   enabled: true
@@ -73,7 +138,7 @@ gitops:
     basePath: "clusters"
 
 # ------------------------------------------------------------------------------
-# 3. EXPÉRIENCE DÉVELOPPEUR & GOLDEN PATHS (Tenants & Onboarding)
+# 5. EXPÉRIENCE DÉVELOPPEUR & GOLDEN PATHS (Tenants & Onboarding)
 # ------------------------------------------------------------------------------
 goldenPaths:
   enabled: true
@@ -91,7 +156,7 @@ goldenPaths:
     #     - "john.doe@example.com"
 
 # ------------------------------------------------------------------------------
-# 4. SURCHARGE DES SOUS-CHARTS CNCF (Optionnel)
+# 6. SURCHARGE DES SOUS-CHARTS CNCF (Optionnel)
 # ------------------------------------------------------------------------------
 # kyverno: {}
 # external-secrets: {}

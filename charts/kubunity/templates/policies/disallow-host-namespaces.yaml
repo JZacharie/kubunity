@@ -1,0 +1,41 @@
+{{- if and .Values.security.kyverno.enabled .Values.security.kyverno.policies.disallowHostNamespaces.enabled }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kubunity-disallow-host-namespaces
+  labels:
+    {{- include "kubunity.labels" . | nindent 4 }}
+    kubunity.io/policy-category: "security"
+  annotations:
+    policies.kyverno.io/title: "Kubunity : Interdiction des Namespaces Hôte (Host PID/IPC/Network)"
+    policies.kyverno.io/category: "Pod Security Standards (Baseline/Restricted)"
+    policies.kyverno.io/severity: "high"
+    policies.kyverno.io/description: >-
+      Empêche les conteneurs d'accéder directement à la pile réseau ou aux espaces de processus de l'hôte
+      (hostNetwork, hostPID, hostIPC) pour prévenir les évasions de conteneurs.
+spec:
+  validationFailureAction: {{ .Values.security.kyverno.validationFailureAction | default "Audit" }}
+  background: true
+  rules:
+    - name: check-host-namespaces
+      match:
+        any:
+        - resources:
+            kinds:
+              - Pod
+      exclude:
+        any:
+        - resources:
+            namespaces:
+              - kube-system
+              - kube-public
+              - kube-node-lease
+              - cilium
+      validate:
+        message: "L'utilisation de hostNetwork, hostPID ou hostIPC est interdite pour les charges applicatives."
+        pattern:
+          spec:
+            =(hostNetwork): false
+            =(hostPID): false
+            =(hostIPC): false
+{{- end }}

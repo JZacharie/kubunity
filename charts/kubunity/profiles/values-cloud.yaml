@@ -8,7 +8,7 @@ cluster:
 security:
   kyverno:
     enabled: true
-    validationFailureAction: "Enforce" # Blocage strict des non-conformités en production
+    validationFailureAction: "Enforce" # Blocage strict en production
     policies:
       disallowRoot:
         enabled: true
@@ -18,18 +18,44 @@ security:
         enabled: true
       autoGenerateNetworkPolicies:
         enabled: true
+      disallowPrivilegeEscalation:
+        enabled: true
+      disallowHostNamespaces:
+        enabled: true
+      requireReadOnlyRootFilesystem:
+        enabled: true
+      restrictClusterAdminBindings:
+        enabled: true
 
   secrets:
     enabled: true
     createClusterSecretStore: true
     backend:
-      type: "aws" # ou vault / gcp / azure
+      type: "aws"
       aws:
         region: "eu-west-1"
         service: "SecretsManager"
 
   vulnerabilityScanner:
     enabled: true
+
+networking:
+  cilium:
+    enabled: true
+    defaultClusterwidePolicy:
+      enabled: true
+
+observability:
+  kusanagi:
+    enabled: true
+    ingress:
+      enabled: true
+      className: "traefik"
+      hosts:
+        - host: "kusanagi.prod.example.com"
+          paths:
+            - path: /
+              pathType: Prefix
 
 gitops:
   enabled: true
